@@ -1,0 +1,683 @@
+var playerPluinsStatus = {
+    'ok': {
+        'msg': '',
+        'link': []
+    },
+    'pluins_unie': {
+        'msg': '您的浏览器暂不支持课程播放，请选用以下其中一种方式开始学习：',
+        'link': ['<strong>方式一：</strong>使用IE浏览器', '<strong>方式二：</strong>360、搜狗、猎豹、QQ等浏览器请使用兼容模式&nbsp;<a href="http://www.qinxue.com/index.php?r=help/detail&help=37" target="_blank">如何使用兼容模式</a>']
+    },
+    'pluins_unsupport': {
+        'msg': '您的浏览器暂不支持课程播放，请选用以下其中一种方式开始学习：',
+        'link': ['<strong>方式一：</strong>使用IE浏览器', '<strong>方式二：</strong>360、搜狗、猎豹、QQ等浏览器请使用兼容模式&nbsp;<a href="http://www.qinxue.com/index.php?r=help/detail&help=37" target="_blank">如何使用兼容模式</a>']
+    },
+    'pluins_unsupport_v1010': {
+        'msg': '您的浏览器暂不支持本课程播放，请选用以下其中一种浏览器开始学习：',
+        'link': ['<strong>方式一：</strong>360、搜狗、猎豹、QQ等双核浏览器', '<strong>方式二：</strong>火狐浏览器', '<strong>方式三：</strong>使用IE浏览器', '<strong>方式四：</strong>chrome浏览器(版本44及版本44以下)']
+    },
+    'pluins_uninstall': {
+        'msg': '您还没有安装播放器插件，插件安装完成后，请重新启动浏览器',
+        'link': ['第二步：安装已下载的播放器插件&nbsp;<a href="http://www.qinxue.com/index.php?r=help/detail&help=39" target="_blank">不知道如何安装，请点击这里</a>', '第三步：安装完成后，关闭浏览器，重新打开浏览器进入本页面']
+    },
+    'pluins_uninstall_1009': {
+        'msg': '您还没有安装播放器插件',
+        'link': ['<a href="http://www.qinxue.com/index.php?r=help/detail&help=27" target="_blank" class="iechajian01_anzhuang">不知道如何安装插件，请点击这里</a>']
+    },
+    'pluins_uninstall_ie': {
+        'msg': '您还没有安装播放器插件，请选用以下其中一种方式：',
+        'link': ['<strong>方式一：</strong>加载插件后，播放课程视频&nbsp;<a href="http://www.qinxue.com/index.php?r=help/detail&help=40" target="_blank">不知道如何加载插件，请点击这里</a>', '<strong>方式二：</strong>安装播放器插件后，播放课程视频&nbsp;<a href="http://www.qinxue.com/index.php?r=help/detail&help=41" target="_blank">不知道如何安装插件，请点击这里</a>']
+    },
+    'pluins_uninstall_npapi': {
+        'msg': '您还未安装播放器插件，插件安装完成后，请重新启动浏览器',
+        'link': ['第二步：安装已下载的播放器插件&nbsp;<a href="http://www.qinxue.com/index.php?r=help/detail&help=39" target="_blank">不知道如何安装，请点击这里</a>', '第三步：安装完成后，关闭浏览器，重新打开浏览器进入本页面']
+    },
+    'initpluins_error': {
+        'msg': '哎哟，播放器初始化失败了',
+        'link': ["<a href='javascript:void(0);' onclick='objPlayAddKefu();'>请联系客服</a>"]
+    }
+};
+
+var playerObjTimer = {
+    intTimerCheckPluinsStatus: null,
+    intTimerCheckPluinsWorking: null,
+    intTimerCheckInRecodeBrowWorking: null,
+    startCheckPluins: function() {
+        playerObjTimer.intTimerCheckPluinsStatus = setInterval(function() {
+            playObj.checkPluinsStatus();
+        }, 2000);
+    },
+    stopCheckPluins: function() {
+        clearInterval(playerObjTimer.intTimerCheckPluinsStatus);
+    },
+    startCheckPluinsWorking: function() {
+        playerObjTimer.intTimerCheckPluinsWorking = setInterval(function() {
+            playerObjPluinsInfo.checkPluinsWorking();
+        }, 1000 * 60);
+    },
+    stopCheckPluinsWorking: function() {
+        clearInterval(playerObjTimer.intTimerCheckPluinsWorking);
+    },
+    startCheckInRecodeBrowWorking: function() {
+        playerObjTimer.intTimerCheckInRecodeBrowWorking = setInterval(function() {
+            playObj.checkInRecodeBrow();
+        }, 1000 * 60);
+    },
+    stopCheckInRecodeBrowWorking: function() {
+        clearInterval(playerObjTimer.intTimerCheckInRecodeBrowWorking);
+    }
+};
+
+/**
+ * 插件信息
+ */
+var playerObjPluinsInfo = {
+    cfg: {
+        uid: 0,
+        uname: '',
+        param: '',
+        sign: '',
+        version: ''
+    },
+    initPluins: function() {
+        //根据版本号初始化对应版本的插件
+        switch (playerObjPluinsInfo.cfg.version) {
+        case 1010:
+            return this.getPluinObj().initUser(playerObjPluinsInfo.cfg.uname, playerObjPluinsInfo.cfg.uid, playerObjPluinsInfo.cfg.param, playerObjPluinsInfo.cfg.sign, function(result) {
+                playerObjPluinsInfo.initPluinsCallBack(result);
+            });
+            break;
+        case 1009:
+            return this.getPluinObj().initUser(playerObjPluinsInfo.cfg.uname, playerObjPluinsInfo.cfg.uid, playerObjPluinsInfo.cfg.param, playerObjPluinsInfo.cfg.sign);
+            break;
+        default:
+            return this.getPluinObj().initUser(playerObjPluinsInfo.cfg.uname, playerObjPluinsInfo.cfg.uid, playerObjPluinsInfo.cfg.sign);
+            break;
+        }
+    },
+    getPluinObj: function() {
+        return document.getElementById("qxPlayerPluin");
+    },
+    //1.0.1.0以上版本异步处理结果
+    initPluinsCallBack: function(result) {
+        this.checkPluinsStatus(result);
+    },
+    getPluinsIsSetup: function() {
+        //是否支持windows平台插件
+        if (!this.isWin())
+            return "pluins_unsupport";
+
+        //active插件是否安装完毕
+        if (this.isSupportActiveX()) {
+            if (this.getPluinsActivexIsSetup()) {
+                return 'ok';
+            }
+            return (playerObjPluinsInfo.cfg.version < 1010) ? 'pluins_uninstall_1009' : 'pluins_uninstall_ie';
+        }//npapi插件是否安装完毕
+        else if (this.isSupportNpApi()) {
+            return this.getPluinsNpapiIsSetup() ? 'ok' : 'pluins_uninstall_npapi';
+        } else {
+            return 'pluins_uninstall';
+        }
+    },
+    getPluinsActivexIsSetup: function() {
+        try {
+            this.getPluinObj().getVersion();
+            return true;
+        } catch (e) {
+            return false;
+        }
+    },
+    getPluinsNpapiIsSetup: function() {
+        for (var i = 0; i < navigator.plugins.length; i++) {
+            if (navigator.plugins[i].name == 'npQXUserCtrlNP') {
+                return true;
+            }
+        }
+        return false;
+    },
+    checkPluins: function() {
+        if (!this.isSupportPluin())
+            return;
+
+        var result = this.initPluins();
+
+        //1.0.1.0已更新为异步返回结果
+        if (this.getVersion() >= 1010)
+            return;
+
+        //老版本继续走此流程
+        this.checkPluinsStatus(result);
+    },
+    //1.0.1.0以上版本异步处理结果
+    checkPluinsStatus: function(result) {
+        try {
+            var ch = result.split("_");
+            if (ch[0] == "ng") {
+                $("#myPlayer_wrapper").html("");
+            }
+            if (ch[1] == "a1") {
+                $("#myPlayer_wrapper").html("");
+            }
+        } catch (e) {
+            playObj.jwPlayObj.seek(0);
+            playObj.jwPlayObj.pause();
+        }
+    },
+    //检测插件工作状态
+    checkPluinsWorking: function() {
+        // 检测是否在录屏浏览器中
+        playObj.checkInRecodeBrow();
+
+        if (this.getVersion() < 1010)
+            return;
+
+        try {
+            playerObjPluinsInfo.getPluinObj().getBlackStatus();
+            playerObjPluinsInfo.getPluinObj().getNetWorkFailedCnt();
+            playerObjPluinsInfo.getPluinObj().getNetWorkFailedCnt();
+        } catch (e) {
+            //$("#myPlayer_wrapper").html( "" );
+            ajax.init().setUrl('http://api0.qinxue.com/index.php?r=onlinePlayer/expLog').setData({
+                'uid': playerObjPluinsInfo.cfg.uid,
+                'uname': playerObjPluinsInfo.cfg.uname,
+                'date': e
+            }).setJsonp('playerObjPluinsInfo.checkPluinsWorkingJsonp(data)').setIsTip(false).preRun().run();
+
+            playerObjTimer.stopCheckPluinsWorking();
+        }
+    },
+    checkPluinsWorkingJsonp: function(data) {
+    },
+    getVersion: function() {
+        try {
+            return this.versionStrToInt(this.getPluinObj().getVersion());
+        } catch (e) {
+            return "";
+        }
+    },
+    //字符版本号切换为整型
+    versionStrToInt: function(_strVersion) {
+        _strVersion = _strVersion.replace(/\,/ig, "");
+        _strVersion = _strVersion.replace(/\./ig, "");
+
+        return parseInt(_strVersion);
+    },
+    //是否windows平台
+    isWin: function() {
+        return (navigator.platform == "Win32") || (navigator.platform == "Windows");
+    },
+    //是否支持activeX插件
+    isSupportActiveX: function() {
+        // IE模式,加载activX插件
+        if (window.ActiveXObject || "ActiveXObject"in window) {
+            return true;
+        } else {
+            var osInfo = this.getOsInfo();
+            // 非IE模式,但是系统是XP,强制使用activeX插件
+            if (osInfo.os == "win" && osInfo.version == "5.1") {
+                return true;
+            }
+
+            return false;
+        }
+
+        //return ( window.ActiveXObject || "ActiveXObject" in window );
+    },
+    //是否支持NPAPI插件
+    isSupportNpApi: function() {
+        var jsonBrowserInfo = this.getBrowserInfo();
+        //chrome浏览器，检测是否为45以下版本,45以上版本不再支持NPAPI
+        if (jsonBrowserInfo.browser == 'chrome') {
+            if (jsonBrowserInfo.ver >= '46') {
+                return false;
+            }
+        }
+
+        return true;
+    },
+    //是否支持插件
+    isSupportPluin: function() {
+        //非windows平台，不支持
+        if (!this.isWin())
+            return false;
+        var tmpIsSupportActiveX = this.isSupportActiveX();
+        var tmpIsSupportNpApi = this.isSupportNpApi();
+        //1.0.1.0以前的版本只支持activex
+        if (this.cfg.version < 1010) {
+            if (tmpIsSupportActiveX)
+                return true;
+            return false;
+        } else {
+            //是否支持Activex 或者 NPAPI
+            if (tmpIsSupportActiveX || tmpIsSupportNpApi)
+                return true;
+        }
+        return false;
+    },
+    //获得浏览器信息
+    getBrowserInfo: function() {
+        var userAgent = navigator.userAgent
+          , rMsie = /(msie\s|trident.*rv:)([\w.]+)/
+          , rFirefox = /(firefox)\/([\w.]+)/
+          , rOpera = /(opera).+version\/([\w.]+)/
+          , rChrome = /(chrome)\/([\w.]+)/
+          , rSafari = /version\/([\w.]+).*(safari)/;
+
+        userAgent = userAgent.toLowerCase();
+
+        var match = rMsie.exec(userAgent);
+        if (match != null) {
+            return {
+                browser: "IE",
+                version: match[2] || "0"
+            };
+        }
+        var match = rFirefox.exec(userAgent);
+        if (match != null) {
+            return {
+                browser: match[1] || "",
+                version: match[2] || "0"
+            };
+        }
+        var match = rOpera.exec(userAgent);
+        if (match != null) {
+            return {
+                browser: match[1] || "",
+                version: match[2] || "0"
+            };
+        }
+        var match = rChrome.exec(userAgent);
+        if (match != null) {
+            return {
+                browser: match[1] || "",
+                version: match[2] || "0"
+            };
+        }
+        var match = rSafari.exec(userAgent);
+        if (match != null) {
+            return {
+                browser: match[2] || "",
+                version: match[1] || "0"
+            };
+        }
+
+        if (match != null) {
+            return {
+                browser: "",
+                version: "0"
+            };
+        }
+    },
+    getOsInfo: function() {
+        var userAgent = navigator.userAgent;
+        var p = navigator.platform;
+
+        if (p.indexOf('Win') == 0) {
+            var rVsion = /Win(?:dows )?([^do]{2})\s?(\d+\.\d+)?/;
+            var match = rVsion.exec(userAgent);
+            return {
+                os: "win",
+                version: match[2]
+            };
+        }
+
+        return {
+            os: "",
+            version: "0"
+        };
+    }
+};
+
+/**
+ * 播放器
+ */
+var playObj = {
+    player: null,
+    jwPlayObj: null,
+    snLoadFile: '',
+    playerConfig: {
+        isShowAd: true,
+        autostart: false,
+        debug: 'none'
+    },
+    loadedVideoInfo: {},
+    init: function() {
+        // 检测是否在录屏浏览器中
+        playObj.checkInRecodeBrow();
+
+        playObj.loadPlayerTip("正在加载播放器...");
+
+        //安装播放器
+        this.loadFileUrl();
+
+    },
+    autoCheckPluins: function() {
+        if ($.cookie("player_pluins") == 'setup') {
+            playObj.loadFileUrl();
+        }
+    },
+    checkPluins: function() {
+        ajax.init().setUrl('/index.php?r=chapter/checkPlayerPluins').setData({
+            tuid: PLAY_TUID,
+            tucid: PLAY_TUCID,
+            'gourl': URL_CURRENT
+        }).setCbSuccess("playObj.checkPluinsCbSuccess(data)").setCbError("playObj.checkPluinsCbError(data)").setIsTip(false).preRun().run();
+    },
+    checkPluinsCbSuccess: function(data) {
+        //载入配置信息
+        if (data.DATA.accelerator == 1) {
+            playerObjPluinsInfo.cfg.uid = data.DATA.uid;
+            playerObjPluinsInfo.cfg.uname = data.DATA.uname;
+            playerObjPluinsInfo.cfg.param = data.DATA.param;
+            playerObjPluinsInfo.cfg.sign = data.DATA.sign;
+            playerObjPluinsInfo.cfg.version = playerObjPluinsInfo.versionStrToInt(data.DATA.version);
+        }
+
+        //是否加载插件
+        if (data.DATA.accelerator == 1) {
+            playObj.loadPlayerTip("正在检测播放器插件...");
+            //检测环境-是否支持插件
+            try {
+                if (!playerObjPluinsInfo.isSupportPluin()) {
+                    if (playerObjPluinsInfo.cfg.version >= 1010)
+                        popMsg.showErrorMsgV2("温馨提示", playerPluinsStatus['pluins_unsupport_v1010'].msg, playerPluinsStatus['pluins_unsupport_v1010'].link, false);
+                    else
+                        popMsg.showErrorMsgV2("温馨提示", playerPluinsStatus['pluins_unsupport'].msg, playerPluinsStatus['pluins_unsupport'].link, false);
+
+                    return false;
+                }
+            } catch (e) {
+                alert(e);
+            }
+
+            //环境允许的情况下载入插件
+            if ($("#jqPlayerPluins").html() == '') {
+                //准备安装插件
+                if ($.cookie("player_pluins") == undefined) {
+                    $.cookie("player_pluins", 'setup', {
+                        expires: 30
+                    });
+                }
+
+                playObj.loadPlayerTip("正在加载播放器插件...");
+                //载入IE内核的插件
+                if (playerObjPluinsInfo.isSupportActiveX())
+                    this.loadPluinActiveX(data.DATA.classid, data.DATA.path, playerObjPluinsInfo.cfg.version);
+                    //载入NPAPI插件
+                else
+                    this.loadPluinNpApi(data.DATA.exe_path);
+            }
+
+            //检测插件安装状态
+            var strPluinSetupStatus = playerObjPluinsInfo.getPluinsIsSetup();
+
+            //未安装插件-提示用户安装插件
+            if (strPluinSetupStatus != 'ok') {
+                //关闭播放器提示信息
+                playObj.closePlayerTip();
+
+                //提示用户安装插件	
+                var tmpAryLink = [];
+
+                if (!playerObjPluinsInfo.isSupportActiveX() && playerObjPluinsInfo.cfg.version >= 1010)
+                    tmpAryLink.push('第一步：下载播放器插件&nbsp;<a href="' + data.DATA.exe_path + '" target="_blank">点击此处下载播放器插件</a>');
+                for (i in playerPluinsStatus[strPluinSetupStatus].link)
+                    tmpAryLink.push(playerPluinsStatus[strPluinSetupStatus].link[i]);
+                if (playerObjPluinsInfo.isSupportActiveX() && playerObjPluinsInfo.cfg.version >= 1010)
+                    tmpAryLink.push('<a href="' + data.DATA.exe_path + '" target="_blank" class="" style="display:block !important;margin-left:49px;margin-top:-9px;width:160px;">点击此处下载安装播放器插件</a>');
+
+                popMsg.showErrorMsgV2("温馨提示", playerPluinsStatus[strPluinSetupStatus].msg, tmpAryLink, false);
+
+                //开启计时器检测插件是否安装成功
+                playerObjTimer.startCheckPluins();
+
+                return false;
+            }
+
+            //初始化已安装的插件
+            try {
+                playerObjPluinsInfo.initPluins();
+            } catch (e) {
+                popMsg.showErrorMsgV2("温馨提示", playerPluinsStatus['initpluins_error'].msg, playerPluinsStatus['initpluins_error'].link, false);
+                return;
+            }
+
+            playerObjTimer.startCheckPluinsWorking();
+        }
+
+        objPluinsInfo.accelerator = data.DATA.accelerator;
+        // 检测是否在360浏览器的录屏界面中定时器
+        playerObjTimer.startCheckInRecodeBrowWorking();
+
+        //加载播放器
+        playObj.loadVideoPlayer();
+
+    },
+    checkPluinsCbError: function(data) {
+        playObj.closePlayerTip();
+        popMsg.showErrorMsg("温馨提示", '播放器插件安装失败', ["<a href='javascript:void(0);' onclick='objPlayAddKefu();'>请联系客服</a>"], false);
+    },
+    checkPluinsStatus: function() {
+        //检测插件是否已安装
+        var strPluinStatus = playerObjPluinsInfo.getPluinsIsSetup();
+        if (strPluinStatus == 'ok') {
+            //关闭计时器
+            playerObjTimer.stopCheckPluins();
+
+            $.cookie("player_pluins", 'done');
+            popMsg.showSuccessMsg("温馨提示", "&nbsp;&nbsp;&nbsp;插件已安装完成");
+
+            playObj.loadFileUrl();
+        }
+
+    },
+    //加载播放器插件-activeX版
+    loadPluinActiveX: function(_classid, _path, _version) {
+        $("#jqPlayerPluins").html('<object id="qxPlayerPluin" codebase="' + _path + '" classid="clsid:' + _classid + '" width="0" height="0"></object>').show();
+    },
+    //加载播放器插件-npapi版
+    loadPluinNpApi: function(_pathExe) {
+        //检测是否已安装插件
+        var tmpIsInstalled = playerObjPluinsInfo.getPluinsNpapiIsSetup();
+
+        //已安装，加载插件
+        if (tmpIsInstalled) {
+            $("#jqPlayerPluins").html('<object id="qxPlayerPluin" type="application/x-qxuserctrl" width="0" height="0"></object>').show();
+        }
+    },
+    loadFileUrl: function() {
+        playObj.loadPlayerTip("正在启动播放器...");
+
+        var jsonData = {
+            key: PLAY_KEY,
+            tuid: PLAY_TUID,
+            tucid: PLAY_TUCID,
+            'gourl': URL_CURRENT
+        };
+        ajax.init().setUrl(URL_LOADFILEPATH).setData(jsonData).setCbSuccess("playObj.loadFileUrlCbSuccess(data)").setCbError("playObj.loadFileUrlCbError(data)").setCbSysError("playObj.loadFileUrlCbError(data)").setIsTip(false).preRun().run();
+    },
+    loadFileUrlCbSuccess: function(data) {
+        var jsonCbData = data.DATA;
+
+        if (data.DATA.accelerator) {
+            var strPluinStatus = jw_getSpeedPluinsStatus();
+            if (strPluinStatus != 'ok') {
+                popMsg.showErrorMsg("温馨提示", strPluinStatus);
+                return false;
+            }
+        }
+
+        //没有取到值
+        if (typeof (jsonCbData.urlFile) == 'undefined' || jsonCbData.urlFile == "") {
+            popMsg.showErrorMsg("温馨提示", "非常抱歉,视频加载失败");
+            return false;
+        }
+        if (jsonCbData.filearr == '') {
+            popMsg.showErrorMsg("温馨提示", "非常抱歉,视频加载失败");
+            return false;
+        }
+
+        playObj.loadedVideoInfo.urlFile = jsonCbData.urlFile;
+        playObj.loadedVideoInfo.filearr = jsonCbData.filearr;
+        playObj.loadedVideoInfo.timearr = jsonCbData.timearr;
+        playObj.loadedVideoInfo.totaltime = jsonCbData.totaltime;
+        playObj.loadedVideoInfo.frontadurl = jsonCbData.frontadurl;
+
+        this.checkPluins();
+
+    },
+    loadFileUrlCbError: function(data) {
+        var jsonCb = data;
+        popMsg.showErrorMsgAddDIV("温馨提示", jsonCb.MSG, jsonCb.LINK.links, false, false, jsonCb.LINK.disklinks, jsonCb.DATA, jsonCb.LINK.aryShikanChaptersHtml);
+        $("#popupMsg").find('.msg').eq(0).removeClass('msgError').addClass('msgPlayError');
+        $("#popupMsg").find('.linkto').eq(0).addClass('linktoPlay');
+        if (jsonCb.LINK.length > 0)
+            popMsg.resizePopupDialog(450);
+    },
+    loadVideoPlayer: function(_urlFile, _filearr, _timearr, _totaltime, _frontadurl) {
+        var _urlFile = playObj.loadedVideoInfo.urlFile;
+        var _filearr = playObj.loadedVideoInfo.filearr;
+        var _timearr = playObj.loadedVideoInfo.timearr;
+        var _totaltime = playObj.loadedVideoInfo.totaltime;
+        var _frontadurl = playObj.loadedVideoInfo.frontadurl;
+
+        try {
+            var jsonConfig = {
+                'flashplayer': STATIC_DOMAIN + '/js/jwplayer/5.10/Jwplayer510xa_20180930V004.swf',
+                'width': 1024,
+                'height': 600 + 31,
+                //31为控制栏高度
+                'autostart': 'false',
+                'file': 'nothing',
+                'filearr': _filearr,
+                'filetimearr': _timearr,
+                'videototaltime': _totaltime,
+                'provider': 'http',
+                //以http流的流开
+                'image': URL_PREVIEW_IMAGE,
+                //预览图
+                'havead': 'false',
+                'frontadurl': '',
+                //前置视频广告地址
+                'cross': 'http://video.qinxue.com/crossdomain.xml',
+                //跨域文件
+                'adtime': '10',
+                //广告时长
+                'wmode': 'transparent',
+                'ccfile': ''
+            };
+            //调试模式
+            jsonConfig.debug = playObj.playerConfig.debug;
+            //是否自动播放
+            jsonConfig.autostart = playObj.playerConfig.autostart;
+            //是否显示片头
+            if (playObj.playerConfig.isShowAd) {
+                jsonConfig.havead = true;
+                jsonConfig.frontadurl = _frontadurl;
+            }
+
+            playObj.jwPlayObj = jwplayer('myPlayer').setup(jsonConfig);
+
+            /*
+			$("#myPlayer_wrapper").mouseout(
+					  function(event){
+					   event = event || window.event; 
+					   var x = event.offsetX || event.originalEvent.layerX;
+					   var y = event.offsetY || event.originalEvent.layerY;
+					   alert(x+"_"+y);
+					   if(x<1024 && x>724&&y<0){
+						 alert("录屏");
+					   }
+					  }
+					 );
+			*/
+            /*
+			$(document).bind('mousemove',function(e){
+				var x =        e.pageX;
+				var y = e.pageY;
+				 console.log(x+"_"+y);
+				    });
+			*/
+            //setInterval(func5second, 5000);
+            //setInterval(playingCheckLogin, 1000 * 60 * 5);
+        } catch (e) {
+            alert(e);
+        }
+    },
+    loadPlayerTip: function(_msg) {
+        if (objUserInfo.userid == '' || objUserInfo.userid == '0')
+            return;
+
+        //加载播放器提示
+        $("#jqPlayerPreLoadingTip").html(_msg).show();
+    },
+    closePlayerTip: function() {
+        $("#jqPlayerPreLoadingTip").hide();
+    },
+    // 添加播放状态监听
+    addListeners: function() {
+        if (playObj.player)
+            playObj.player.addModelListener("STATE", "stateListener");
+        else
+            setTimeout(function() {
+                playObj.addListeners();
+            }, 100);
+    },
+    checkInRecodeBrow: function() {
+        var myPlayerStyle = $("#myPlayer").attr("style");
+
+        if (myPlayerStyle != undefined) {
+            myPlayerStyle = myPlayerStyle.replace(/\s+/g, "");
+            myPlayerStyle = myPlayerStyle.replace(/\;+/g, "");
+            if (myPlayerStyle != "background-image:none") {
+                // 停止检测计时器
+                playerObjTimer.stopCheckInRecodeBrowWorking();
+
+                $("#myPlayer_wrapper").html("");
+                window.opener = null;
+                window.open('', '_self');
+                window.close();
+            }
+        }
+    }
+};
+
+// 播放器加载完成触发，开始绑定事件
+function playerReady(thePlayer) {
+    //关闭播放器的提示
+    playObj.closePlayerTip();
+
+    //初始化播放器信息
+    playObj.player = window.document[thePlayer.id];
+    playObj.addListeners();
+    playObj.jwPlayObj.playerReady(thePlayer);
+
+}
+
+//处于播放状态再进行跳转
+function stateListener(obj) {
+    currentState = obj.newstate;
+    if (currentState == 'PLAYING') {
+        if (SEEK > 0) {
+            playObj.jwPlayObj.seek(SEEK);
+            SEEK = 0;
+        }
+    }
+}
+
+function jw_heartCheckTip(_sn) {
+    popMsg.showErrorMsg("温馨提示：", "出错了(Err:" + _sn + " )", [], false);
+}
+
+$(function() {
+    if (SEEK > 0) {
+        playObj.init();
+    }
+    $("#jqBtnPlay,#jqBtnPlay02").click(function() {
+
+        playObj.init();
+
+    });
+
+    playObj.autoCheckPluins();
+});
